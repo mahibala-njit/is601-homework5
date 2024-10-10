@@ -11,6 +11,5 @@ class AddCommand(Command):
 
     def execute(self):
         result = Calculator.add(self.a, self.b)
-        print(f"Result: {result}")
         return result
 

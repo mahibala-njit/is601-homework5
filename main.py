@@ -1,18 +1,25 @@
-# main.py
-
 import re
 from decimal import Decimal, InvalidOperation
 from calculator.commands import CommandHandler
-from calculator.plugins.add import AddCommand  # Ensure correct import paths
+from calculator.plugins.add import AddCommand
 from calculator.plugins.subtract import SubtractCommand
 from calculator.plugins.multiply import MultiplyCommand
 from calculator.plugins.divide import DivideCommand
 from calculator.plugins.menu import MenuCommand
+from multiprocessing import Process, Queue
+
+def worker(command_name, args, queue):
+    """Worker function to execute commands in a separate process."""
+    try:
+        result = command_handler.execute_command(command_name, *args)
+        queue.put(result)  # Put the result in the queue for retrieval
+    except Exception as e:
+        queue.put(f"An error occurred: {e}")
 
 def main():
+    global command_handler
     command_handler = CommandHandler()
 
-    # Register commands in a loop for better maintainability
     command_classes = {
         "add": AddCommand,
         "subtract": SubtractCommand,
@@ -35,22 +42,27 @@ def main():
             print("Exiting the calculator.")
             break
 
-        # Use regex to match the command and arguments, allowing for 'menu'
         match = re.match(r"(\w+)(?:\(([^)]*)\))?", user_input)
 
         if match:
             command_name = match.group(1)
-            args = match.group(2)  # Get the arguments if present
+            args = match.group(2).split(",") if match.group(2) else []
 
-            if args:
-                args = args.split(",")  # Split arguments by comma
-            else:
-                args = []  # No arguments for menu command
-            
+            # Convert arguments to Decimal if present
             try:
-                # Convert arguments to Decimal only if there are any
-                decimal_args = list(map(Decimal, args)) if args else []
-                command_handler.execute_command(command_name, *decimal_args)  # Pass as arguments
+                decimal_args = list(map(Decimal, args))
+                queue = Queue()  # Create a queue to get results from the process
+                process = Process(target=worker, args=(command_name, decimal_args, queue))
+                process.start()  # Start the process
+                process.join()  # Wait for the process to finish
+                result = queue.get()  # Get the result from the queue
+
+                # Print the result only if it is not a list (commands)
+                if isinstance(result, list):  # Check if the result is a list (like menu)
+                    print("Available commands:", ', '.join(result))
+                else:
+                    print(f"Result: {result}")
+
             except InvalidOperation:
                 print("Invalid input. Please enter valid numbers.")
             except KeyError:

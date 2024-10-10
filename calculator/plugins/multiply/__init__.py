@@ -9,6 +9,5 @@ class MultiplyCommand(Command):
 
     def execute(self):
         result = Calculator.multiply(self.a, self.b)
-        print(f"Result: {result}")
         return result
 

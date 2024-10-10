@@ -9,6 +9,5 @@ class SubtractCommand(Command):
 
     def execute(self):
         result = Calculator.subtract(self.a, self.b)
-        print(f"Result: {result}")
         return result
 

@@ -14,5 +14,4 @@ class DivideCommand(Command):
         if self.b == 0:
             raise InvalidOperation("Cannot divide by zero")
         result = Calculator.divide(self.a, self.b)
-        print(f"Result: {result}")
         return result

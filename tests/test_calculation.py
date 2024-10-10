@@ -6,6 +6,7 @@ The tests are designed to verify the correctness of basic arithmetic operations
 as well as the functionality of the Calculation class that encapsulates these operations.
 """
 
+# pylint: disable=unnecessary-dunder-call
 from decimal import Decimal
 import pytest
 from calculator.calculation import Calculation

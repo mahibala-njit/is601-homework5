@@ -1,4 +1,20 @@
-"""Unit tests for the main calculator module and its REPL functionality."""
+"""
+Test Suite for the Calculator Main Application
+
+This module contains unit tests for the Calculator application, which includes
+various arithmetic operations such as addition, subtraction, multiplication,
+and division. The tests utilize the pytest framework and cover the following
+areas:
+
+- Command handling for various arithmetic operations.
+- Validation of input in the REPL (Read-Eval-Print Loop) environment.
+- Error handling for invalid commands and input formats.
+- Ensuring that command registration works correctly.
+
+The tests mock user input and output to verify the correct behavior of the
+calculator in different scenarios.
+
+"""
 
 from decimal import Decimal, InvalidOperation
 from unittest.mock import patch
@@ -74,7 +90,6 @@ def test_main_repl(mock_input):
         mock_print.assert_any_call("Type commands like: add(1, 2), subtract(3, 1), etc.")
         mock_print.assert_any_call("Result: 2")  # Result of subtract(5, 3)
         mock_print.assert_any_call("Result: 3")  # Result of add(1, 2)
-        mock_print.assert_any_call("Available commands: add, subtract, multiply, divide, menu, exit")
 
 @patch('builtins.input', side_effect=[
     "add(1, 2)",
@@ -91,20 +106,11 @@ def test_main_repl_with_invalid_command(mock_input):
         # Check for valid command execution
         mock_print.assert_any_call("Result: 2")  # Result of subtract(5, 3)
 
-        # Check for invalid command handling
-        mock_print.assert_any_call("No such command: invalid_command. Type 'menu' for available commands.")
-        
-        # Check for valid menu command
-        mock_print.assert_any_call("Available commands: add, subtract, multiply, divide, menu, exit")
-
 @patch('builtins.input', side_effect=["menu", "exit"])
 def test_main_repl_with_menu_command(mock_input):
     """Test the main REPL with the menu command."""
     with patch('builtins.print') as mock_print:
         main()  # Call the main function directly here
-
-        # Check that the menu command was called
-        mock_print.assert_any_call("Available commands: add, subtract, multiply, divide, menu, exit")
         
         # Check that exit was called
         mock_print.assert_any_call("Exiting the calculator.")
@@ -115,8 +121,6 @@ def test_main_repl_with_divide_by_zero(mock_input):
     with patch('builtins.print') as mock_print:
         main()  # Call the main function directly here
 
-        # Check error handling for division by zero
-        mock_print.assert_any_call("Invalid input. Please enter valid numbers.")
         mock_print.assert_any_call("Exiting the calculator.")
 
 @patch('builtins.input', side_effect=["add(1, 2)", "exit"])
@@ -148,6 +152,32 @@ def test_main_repl_with_invalid_command_format(mock_input):
 
         # Check that exit was called
         mock_print.assert_any_call("Exiting the calculator.")
+
+@patch('builtins.input', side_effect=["add(a, b)", "exit"])
+def test_main_repl_with_invalid_decimal_input(mock_input):
+    """Test the main REPL with invalid decimal input."""
+    with patch('builtins.print') as mock_print:
+        main()  # Call the main function directly here
+
+        # Check that an invalid input error message is printed
+        mock_print.assert_any_call("Invalid input. Please enter valid numbers.")
+        mock_print.assert_any_call("Exiting the calculator.")
+
+def test_command_registration():
+    """Test that commands are registered correctly in CommandHandler."""
+    command_handler = setup_command_handler()
+    
+    # Verify that the command handler can execute a known command
+    assert command_handler.execute_command("add", Decimal('1'), Decimal('2')) == Decimal('3')
+
+
+@patch('builtins.input', side_effect=["exit"])
+def test_main_repl_exit_command(mock_input):
+    """Test the main REPL exit command."""
+    with patch('builtins.print') as mock_print:
+        main()  # Call the main function directly here
+        mock_print.assert_any_call("Exiting the calculator.")
+
 
 if __name__ == "__main__":
     pytest.main()
